@@ -41,7 +41,7 @@ spec:
         imagePullPolicy: Always
         env:
         - name: PERSON_NAME
-          value: "Mariam Simonyan"
+          value: "Alex GD"
         - name: PORT
           value: "8080"
         - name: POD_NAME
