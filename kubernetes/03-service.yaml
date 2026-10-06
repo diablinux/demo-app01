@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: app01
+  namespace: demo-apps
+  labels:
+    app: app01
+    demo: "true"
+    lifecycle: temporary
+spec:
+  type: ClusterIP
+  selector:
+    app: app01
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+    protocol: TCP
+  sessionAffinity: None

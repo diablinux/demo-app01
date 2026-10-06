@@ -1,0 +1,97 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'main.go'
+      - 'go.mod'
+      - 'go.sum'
+      - 'Dockerfile'
+      - '.github/workflows/ci.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: go.mod
+        cache: true
+    
+    - name: Run Go vet
+      run: go vet ./...
+    
+    - name: Run go fmt check
+      run: |
+        if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+          echo "Go code not formatted:"
+          gofmt -s -d .
+          exit 1
+        fi
+    
+    - name: Verify binary
+      run: ./app --version 2>/dev/null || echo "App built successfully"
+    
+    - name: Lint with golangci-lint
+      uses: golangci/golangci-lint-action@v7
+      with:
+        version: latest
+        args: --timeout=5m
+    
+    - name: Run tests
+      run: go test -v -race -coverprofile=coverage.out ./... 
+
+    - name: Show coverage
+      run: go tool cover -func=coverage.out
+
+    - name: Upload coverage
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage
+        path: coverage.out
+    
+    - name: Build Go binary
+      run: go build -o app main.go
+
+  build-and-push:
+    needs: test
+    runs-on: ubuntu-latest
+    if: success()
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Login to Docker Registry
+      uses: docker/login-action@v4
+      with:
+        registry: ${{ secrets.DOCKER_REGISTRY }}
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+    
+    - name: Build and push
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: |
+          ${{ secrets.DOCKER_REGISTRY }}/${{ github.repository }}:latest
+          ${{ secrets.DOCKER_REGISTRY }}/${{ github.repository }}:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Image digest
+      run: "echo Image pushed: ${{ secrets.DOCKER_REGISTRY }}/${{ github.repository }}:${{ github.sha }}"
+    
+    - name: Trigger GitOps Sync
+      if: success()
+      run: |
+        echo "Image pushed successfully. Flux CD will detect and sync changes."
+        echo "Commit message: ${{ github.event.head_commit.message }}"

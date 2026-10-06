@@ -1,0 +1,9 @@
+scrape_configs:
+- job_name: "demo-app01"
+  scheme: https
+  metrics_path: /metrics
+  static_configs:
+  - targets: ["app01.web-services.sytes.net"]
+  relabel_configs:
+  - source_labels: [__address__]
+    target_label: instance

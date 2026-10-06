@@ -1,0 +1,137 @@
+{
+  "dashboard": {
+    "id": null,
+    "panels": [
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "sum(rate(app_requests_total{job=\"demo-app01\"}[1m]))",
+            "refId": "A"
+          }
+        ],
+        "title": "Total Request Rate",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "sum by (method, path) (rate(app_requests_total{job=\"demo-app01\"}[5m]))",
+            "refId": "A"
+          }
+        ],
+        "title": "Request Rate by Method / Path (5m)",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 0,
+          "y": 8
+        },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(app_request_duration_seconds_bucket{job=\"demo-app01\"}[5m])) by (le))",
+            "refId": "A"
+          }
+        ],
+        "title": "Request Latency (p95)",
+        "type": "gauge"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 6,
+          "y": 8
+        },
+        "targets": [
+          {
+            "expr": "app_requests_in_flight{job=\"demo-app01\"}",
+            "refId": "A"
+          }
+        ],
+        "title": "In-flight Requests",
+        "type": "gauge"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 12,
+          "y": 8
+        },
+        "targets": [
+          {
+            "expr": "app_uptime_seconds{job=\"demo-app01\"}",
+            "refId": "A"
+          }
+        ],
+        "title": "App Uptime (seconds)",
+        "type": "gauge"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 18,
+          "y": 8
+        },
+        "targets": [
+          {
+            "expr": "app_memory_alloc_bytes{job=\"demo-app01\"}",
+            "refId": "A"
+          }
+        ],
+        "title": "Memory Allocated",
+        "type": "gauge"
+      }
+    ],
+    "schemaVersion": 38,
+    "tags": [
+      "demo",
+      "demo-app01"
+    ],
+    "timezone": "browser",
+    "title": "demo-app01 Metrics",
+    "uid": "demo-app01-metrics",
+    "version": 1
+  },
+  "overwrite": true
+}
